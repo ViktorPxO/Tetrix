@@ -11,6 +11,8 @@ namespace Tetrix
 {
     public partial class Form1 : Form
     {
+        public int score;
+
         public int help;
 
         public Boolean paused;
@@ -22,7 +24,8 @@ namespace Tetrix
         public Bitmap[] pics;
 
         public PictureBox[] ap;
-        
+
+        public Bitmap win, lose;
 
         public Form1()
         {
@@ -33,13 +36,17 @@ namespace Tetrix
         {
             paused = false;
 
+            score = 0;
+
             help = 0;
+
+            win = new Bitmap("W.png");
+            lose = new Bitmap("L.png");
 
             tg = new tetrixGame();
             tg.mainScreen = this;
 
             pics = new Bitmap[13];
-            pics[0] = new Bitmap("numRes\\num1.png");
             pics[1] = new Bitmap("numRes\\num2.png");
             pics[2] = new Bitmap("numRes\\num4.png");
             pics[3] = new Bitmap("numRes\\num8.png");
@@ -51,7 +58,7 @@ namespace Tetrix
             pics[9] = new Bitmap("numRes\\num512.png");
             pics[10] = new Bitmap("numRes\\num1024.png");
             pics[11] = new Bitmap("numRes\\num2048.png");
-            pics[12] = new Bitmap("numRes\\num4096.png");
+            //pics[12] = new Bitmap("numRes\\num4096.png");
 
             web=new PictureBox[10,20];
             for (int i = 0; i < 10; i++) {
@@ -89,20 +96,36 @@ namespace Tetrix
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            tg.tick();
 
+            label2.Text = score.ToString();
+
+            tg.tick();
             this.drawNext();
+
+            if (tg.finished == 1) {
+                WINbtn.Size = new Size(680, 677);
+                WINbtn.Text = "";
+                WINbtn.BackgroundImage = win;
+                WINbtn.Visible = true;
+            }
+            if (tg.finished == 2) {
+                WINbtn.Size = new Size(680, 677);
+                WINbtn.Text = "";
+                WINbtn.BackgroundImage = lose;
+                WINbtn.Visible = true;
+            }
 
         }
 
         private void btnNewGame_Click(object sender, EventArgs e)
         {
-            
+            timer1.Stop();
+            tg = new tetrixGame();
+            tg.mainScreen = this;
             timer1.Start();
             
         }
 
-        
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             if (!paused && tg.Tetrissing) {
@@ -199,13 +222,23 @@ namespace Tetrix
                 button1.Text = "Play Tetris";
                 tg.active = null;
             }else{
+                tg.bringDown();
                 tg.active = new activePiece(tg.rnd);
                 tg.Tetrissing = true;
                 button1.Text = "Play 2048";
             }
         }
 
-        
+        private void WINbtn_Click(object sender, EventArgs e)
+        {
+            WINbtn.Visible = false;
+            timer1.Stop();
+            tg = new tetrixGame();
+            tg.mainScreen = this;
+            timer1.Start();
+        }
+
+             
 
     }
 }

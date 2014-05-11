@@ -21,7 +21,11 @@ namespace Tetrix
 
         public override void rotate(tetrixGame iCalled)
         {
-
+            int tmp = blocks[0].num;
+            blocks[0].num = blocks[1].num;
+            blocks[1].num = blocks[2].num;
+            blocks[2].num = blocks[3].num;
+            blocks[3].num = tmp;
         }
 
     }

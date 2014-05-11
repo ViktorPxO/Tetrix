@@ -17,6 +17,8 @@ namespace Tetrix
 
         public Boolean Tetrissing;
 
+        public int finished;
+
         public myRandom rnd;
 
         public Boolean goDown;
@@ -27,6 +29,7 @@ namespace Tetrix
             active = new activePiece(rnd);
             goDown = true;
             this.Tetrissing = true;
+            this.finished = 0;
         }
 
         public void tick()
@@ -34,7 +37,28 @@ namespace Tetrix
             if (Tetrissing) {
                 this.update();
             }
+
+            this.check2048();
             this.draw();
+
+        }
+
+        public void checkGameOver() {
+            if (!this.active.piece.okDown(this)) {
+                this.finished = 2;
+            }
+        }
+
+        public void check2048() {
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 20; j++)
+                {
+                    if (this.bg.matrix[i, j] == 2048) {
+                        this.finished = 1;
+                    }
+                }
+            }
         }
 
         public void update() {
@@ -53,28 +77,23 @@ namespace Tetrix
             else {
                 this.printMe();
             }
-
-            
-            this.killLine();
-          
-            
-
+            int upScore=this.killLine();
+            mainScreen.score += upScore * 100;
         }
 
         public void use2048(char where){
-
+            int retMe = 0;
             if (where == 'l') {
                 for (int j = 0; j < 20; j++) {
                     for (int i = 9; i > 0; i--) { 
                         if(bg.matrix[i,j]!='0' && bg.matrix[i,j]==bg.matrix[i-1,j]){
                             bg.matrix[i - 1, j] *= 2;
+                            retMe+= bg.matrix[i - 1, j];
                             bg.matrix[i, j] = '0';
                         }
                     }
                 }
-
                 for (int j = 0; j < 20; j++) {
-
                     for (int i = 0; i < 10; i++) {
                         if (bg.matrix[i, j] != '0') {
                             for (int k = 0; k < i; k++) {
@@ -87,14 +106,13 @@ namespace Tetrix
                     }
 
                 }
-
             }
-
             if (where == 'r') {
                 for (int j = 0; j < 20; j++) {
                     for (int i = 0; i < 9; i++) {
                         if (bg.matrix[i, j] != '0' && bg.matrix[i, j] == bg.matrix[i + 1, j]) {
                             bg.matrix[i + 1, j] *= 2;
+                            retMe += bg.matrix[i + 1, j];
                             bg.matrix[i, j] = '0';
                         } 
                     }
@@ -124,6 +142,7 @@ namespace Tetrix
                         if (bg.matrix[i, j] != '0' && bg.matrix[i, j] == bg.matrix[i, j - 1])
                         {
                             bg.matrix[i, j] *= 2;
+                            retMe += bg.matrix[i, j];
                             /*for (int k = j - 1; k >= 1; k--)
                             {
                                 bg.matrix[i, k] = bg.matrix[i, k - 1];
@@ -159,7 +178,7 @@ namespace Tetrix
 
                             bg.matrix[i, j] = '0';
                             bg.matrix[i, j + 1] *= 2;
-
+                            retMe += bg.matrix[i, j];
                         }
 
                     }
@@ -185,31 +204,63 @@ namespace Tetrix
                 }
 
             }
-
+            mainScreen.score+=retMe;
         }
 
-        public void killLine()
-        {
-            for (int j = 0; j < 20; j++) {
-                Boolean killThisLine = true;
+        public void bringDown() {
+            for (int i = 0; i < 10; i++)
+            {
 
-                for (int i = 0; i < 10; i++) {
-                    if (bg.matrix[i, j] == '0') {
+                for (int j = 19; j >= 0; j--)
+                {
+
+                    if (bg.matrix[i, j] != '0')
+                    {
+                        for (int k = 19; k >= j; k--)
+                        {
+                            if (bg.matrix[i, k] == '0')
+                            {
+                                bg.matrix[i, k] = bg.matrix[i, j];
+                                bg.matrix[i, j] = '0';
+                            }
+                        }
+                    }
+
+                }
+
+            }
+        }
+
+        public int killLine()
+        {
+            int retMe = 0;
+            for (int j = 0; j < 20; j++)
+            {
+                Boolean killThisLine = true;
+                for (int i = 0; i < 10; i++)
+                {
+                    if (bg.matrix[i, j] == '0')
+                    {
                         killThisLine = false;
                         break;
                     }
                 }
-
-                if (killThisLine) {
-                    for (int i = 0; i < 10; i++) {
-                        for (int h = j; h > 0; h--) {
+                if (killThisLine)
+                {
+                    for (int i = 0; i < 10; i++)
+                    {
+                        for (int h = j; h > 0; h--)
+                        {
                             bg.matrix[i, h] = bg.matrix[i, h - 1];
                         }
                         bg.matrix[i, 0] = '0';
                     }
                 }
-
+                if (killThisLine) {
+                    retMe++;
+                }
             }
+            return retMe;
         }
 
         public Boolean checkDone()
@@ -222,7 +273,6 @@ namespace Tetrix
                     break;
                 }
             }
-
             if (done) {
                 goDown = false;
                 return true;
@@ -253,6 +303,7 @@ namespace Tetrix
                 }
 
                 this.active = new activePiece(rnd);
+                this.checkGameOver();
                 this.goDown = true;
                 mainScreen.timer2.Stop();
 
@@ -268,7 +319,6 @@ namespace Tetrix
         {
             switch (num)
             {
-                case 1: return 0;
                 case 2: return 1;
                 case 4: return 2;
                 case 8: return 3;

@@ -19,7 +19,7 @@ namespace Tetrix
             
             br = rnd.Next();
 
-            //br = 0;
+            //br = 3;
 
             if (br == 0) 
             {
@@ -49,6 +49,8 @@ namespace Tetrix
             {
                 piece = new PieceZ();
             }
+
+            
 
         }
     }
